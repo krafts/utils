@@ -51,5 +51,6 @@ while getopts ":n:l:h" opt; do
 done
 
 
-rows=$(openssl rand -base64 $NUM | base64 | grep -oe ".\{$LEN\}" | wc -l)
-openssl rand -base64 $NUM | base64 | grep -oe ".\{$LEN\}" | head -$(jot -r 1 1 $rows) | tail -1
+rows=$(openssl rand -base64 $NUM | base64 | grep -oe ".\{$LEN\}" | wc -l | awk '{print $1}')
+rand=$(awk "BEGIN{srand();print int(rand()*($rows-1))+1 }")
+openssl rand -base64 $NUM | base64 | grep -oe ".\{$LEN\}" | head -$rand | tail -1

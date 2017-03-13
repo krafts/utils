@@ -1,7 +1,11 @@
 #!/bin/bash
 
-set -e
-set -u
+set -o nounset
+set -o errexit
+#set -o xtrace
+
+export PATH="/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin"
+
 
 function usage() {
   cat << EOF

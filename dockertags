@@ -1,0 +1,32 @@
+#!/bin/bash
+
+#### taken from https://stackoverflow.com/a/39454426 and modified
+
+if [ $# -lt 1 ]
+then
+cat << HELP
+
+dockertags  --  list all tags for a Docker image on a remote registry.
+
+EXAMPLE:
+    - list all tags for ubuntu:
+       dockertags ubuntu
+
+    - list all php tags containing apache:
+       dockertags php apache
+
+HELP
+fi
+
+image="$1"
+docker_username="$2"
+docker_password="$3"
+
+if [ -z "$docker_username" ] || [ -z "$docker_password" ]; then
+  tags=$(curl -s https://registry.hub.docker.com/v1/repositories/${image}/tags | sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  | awk -F: '{print $3}')
+else
+  tags=$(curl -s -H "Authorization: Basic $(echo -n $docker_username:$docker_password | base64)" https://registry.hub.docker.com/v1/repositories/${image}/tags | sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  | awk -F: '{print $3}')
+fi
+
+
+echo "${tags}"

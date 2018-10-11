@@ -28,7 +28,7 @@ if [[ ! -f "${filename}" ]]; then
 fi
 
 
-gpg --pinentry-mode loopback --cipher-algo AES256 --output "${filename_e}" --symmetric "${filename}"
+gpg --pinentry-mode ask --cipher-algo AES256 --output "${filename_e}" --symmetric "${filename}"
 return_code=$?
 if [[ ${return_code} -ne 0 ]]; then
   exit ${return_code}

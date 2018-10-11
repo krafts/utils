@@ -29,12 +29,12 @@ fi
 export PAGER=less
 
 ###TODO prevent double decryption
-if gpg --pinentry-mode loopback --cipher-algo AES256 --decrypt "${filename}" 2>&1 | grep -q "gpg: no valid OpenPGP data found." &> /dev/null; then
+if gpg --pinentry-mode ask --cipher-algo AES256 --decrypt "${filename}" 2>&1 | grep -q "gpg: no valid OpenPGP data found." &> /dev/null; then
   echo "could not decrypt '${filename}' for viewing"
   exit 1
 fi
 
-gpg --pinentry-mode loopback --cipher-algo AES256 --decrypt "${filename}" 2> /dev/null | less
+gpg --pinentry-mode ask --cipher-algo AES256 --decrypt "${filename}" 2> /dev/null | less
 return_code=$?
 if [[ ${return_code} -ne 0 ]]; then
   exit ${return_code}

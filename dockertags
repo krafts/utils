@@ -25,7 +25,8 @@ docker_password="$3"
 if [ -z "$docker_username" ] || [ -z "$docker_password" ]; then
   tags=$(curl -s https://registry.hub.docker.com/v1/repositories/${image}/tags | sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  | awk -F: '{print $3}')
 else
-  tags=$(curl -s -H "Authorization: Basic $(echo -n $docker_username:$docker_password | base64)" https://registry.hub.docker.com/v1/repositories/${image}/tags | sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  | awk -F: '{print $3}')
+  token=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$docker_username'", "password": "'$docker_password'"}' https://hub.docker.com/v2/users/login/ | sed -e 's/{"token": "//g' -e 's/"}//g')
+  tags=$(curl -s -H "Authorization: JWT ${token}" https://registry.hub.docker.com/v1/repositories/${image}/tags | sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  | awk -F: '{print $3}')
 fi
 
 

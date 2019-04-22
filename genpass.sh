@@ -17,7 +17,7 @@ EOF
 }
 
 typeset NUM=4096
-typeset LEN=255
+typeset LEN=32
 
 while getopts ":n:l:h" opt; do
   case $opt in
@@ -26,11 +26,6 @@ while getopts ":n:l:h" opt; do
       ;;
     l)
       LEN="$OPTARG"
-      LEN=$((LEN-1))
-      if [ $LEN -gt 255 ]
-      then
-        LEN=255
-      fi
       ;;
     h)
       usage
@@ -54,7 +49,4 @@ while getopts ":n:l:h" opt; do
   esac
 done
 
-
-rows=$(openssl rand -base64 $NUM | base64 | grep -oe ".\{$LEN\}" | wc -l | awk '{print $1}')
-rand=$(awk "BEGIN{srand();print int(rand()*($rows-1))+1 }")
-openssl rand -base64 $NUM | base64 | grep -oe ".\{$LEN\}" | head -$rand | tail -1
+openssl rand -base64 $((2**20)) | base64 -d | base64 -w 0 | grep -o ".\{$LEN\}" | tail -n 5

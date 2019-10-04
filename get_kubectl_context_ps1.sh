@@ -44,5 +44,5 @@ if [ $environment == 'dabl-dev' ]; then
   fg="${fg_black}${bold}"
 fi
 
-
-printf "${fg}${bg}${cluster}${clear_all}"
+## adding extra space at the end for PS1
+printf "${fg}${bg} ${cluster} ${clear_all} "

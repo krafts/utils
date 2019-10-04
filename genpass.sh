@@ -4,7 +4,7 @@ set -o nounset
 set -o errexit
 #set -o xtrace
 
-export PATH="/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/bin"
 
 
 function usage() {

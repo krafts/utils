@@ -5,7 +5,7 @@ if ! command -v kubectl &> /dev/null; then
   exit 0
 fi
 
-context=$(kubectl config current-context)
+context=$(kubectl config current-context 2>/dev/null)
 environment=$(echo ${context} | awk -F_ '{print $2}')
 cluster=$(echo ${context} | awk -F_ '{print $4}')
 
@@ -24,17 +24,17 @@ bold="\e[1m"
 blink="\e[5m"
 clear_all="\e[0m"
 
-if [ $environment == 'dabl-prod' ]; then
+if [ "$environment" == "dabl-prod" ]; then
   bg="${bg_red}"
   fg="${fg_black}${bold}${blink}"
 fi
 
-if [ $environment == 'dabl-staging' ]; then
+if [ "$environment" == "dabl-staging" ]; then
   bg="${bg_yellow}"
   fg="${fg_black}${bold}"
 fi
 
-if [ $environment == 'dabl-dev' ]; then
+if [ "$environment" == "dabl-dev" ]; then
   u=$(echo ${cluster} |  awk -F- '{print $1}')
   if [ "${u}" == "${USER}" ]; then
     exit 0

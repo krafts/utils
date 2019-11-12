@@ -8,8 +8,8 @@ else
   namespace="-n ${NAMESPACE}"
 fi
 
-requests=$(kubectl get pods ${namespace} -o=jsonpath='{.items[*].spec.containers[*].resources.requests.cpu}' | xargs -n 1 | while read i; do if [[ $i == *m ]]; then i=${i%%m}; i=$(awk "BEGIN {printf \"%.2f\",${i}/1000}"); fi; echo $i; done | awk '{SUM+=$1} END {print SUM}')
-limits=$(kubectl get pods ${namespace} -o=jsonpath='{.items[*].spec.containers[*].resources.limits.cpu}' | xargs -n 1 | while read i; do if [[ $i == *m ]]; then i=${i%%m}; i=$(awk "BEGIN {printf \"%.2f\",${i}/1000}"); fi; echo $i; done | awk '{SUM+=$1} END {print SUM}')
+requests=$(kubectl get pods ${namespace} -o jsonpath='{range .items[*]}{range .spec.containers[?(.resources.requests.cpu)]}{.resources.requests.cpu}{"\n"}{end}{end}' | while read i; do if [[ $i == *m ]]; then i=${i%%m}; i=$(awk "BEGIN {printf \"%.2f\",${i}/1000}"); fi; echo $i; done | awk '{SUM+=$1} END {print SUM}')
+limits=$(kubectl get pods ${namespace} -o jsonpath='{range .items[*]}{range .spec.containers[?(.resources.limits.cpu)]}{.resources.limits.cpu}{"\n"}{end}{end}' | while read i; do if [[ $i == *m ]]; then i=${i%%m}; i=$(awk "BEGIN {printf \"%.2f\",${i}/1000}"); fi; echo $i; done | awk '{SUM+=$1} END {print SUM}')
 top=$(kubectl top pods --no-headers ${namespace}| awk '{print $2}' | while read i; do if [[ $i == *m ]]; then i=${i%%m}; i=$(awk "BEGIN {printf \"%.2f\",${i}/1000}"); fi; echo $i; done | awk '{SUM+=$1} END {print SUM}')
 
 echo "requests: ${requests}"

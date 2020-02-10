@@ -10,15 +10,25 @@ GITHUB_API_URL="https://api.github.com/repos/${ACCOUNT}/${REPO}"
 PR_URL="${GITHUB_API_URL}/pulls/${PULL_NUMBER}"
 
 while true; do
+    ## check if PR is already merged.
+    status_code=$(curl -o /dev/null -s -w "%{http_code}" -X GET \
+        -H "Authorization: token ${GITHUB_TOKEN}" \
+        "${PR_URL}/merge")
+    case ${status_code} in
+        204) echo "PR is already merged."; break;;
+        404) ;; ## not merged
+        *) echo "something went wrong with the GET call";;
+    esac
+
     ## check if the branch is outdated. if it is then update the branch.
-    master_sha=$(curl -s \
+    master_sha=$(curl -s -X GET \
         -H "Authorization: token ${GITHUB_TOKEN}" \
         -H "Accept: application/vnd.github.VERSION.sha" \
         "${GITHUB_API_URL}/commits/master")
 
     ## this returns only 250 commits on the branch/PR, if more than 250 commits,
     ## then need to use the commits api.
-    if ! curl -s \
+    if ! curl -s -X GET \
         -H "Authorization: token ${GITHUB_TOKEN}" \
         "${PR_URL}/commits" \
     | grep '"sha"' \

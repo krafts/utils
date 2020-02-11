@@ -20,6 +20,19 @@ while true; do
         *) echo "something went wrong with the GET call";;
     esac
 
+    ## merge
+    status_code=$(curl -o /dev/null -s -w "%{http_code}" -X PUT \
+        -H "Authorization: token ${GITHUB_TOKEN}" \
+        -H "Content-Type: application/json" \
+        --data '{"merge_method": "squash"}' \
+        "${PR_URL}/merge")
+    case ${status_code} in
+        200) echo "merged!"; break;;
+        405) echo "cannot merge... check for approvals or waiting on checks to complete...";;
+        409) echo "cannot merge... CONFLICT!!!"; break;;
+        *) echo "something went wrong with the merge";;
+    esac
+
     ## check if the branch is outdated. if it is then update the branch.
     master_sha=$(curl -s -X GET \
         -H "Authorization: token ${GITHUB_TOKEN}" \
@@ -41,19 +54,6 @@ while true; do
             -H "Accept: application/vnd.github.lydian-preview+json"\
             "${PR_URL}/update-branch"
     fi
-
-    ## merge
-    status_code=$(curl -o /dev/null -s -w "%{http_code}" -X PUT \
-        -H "Authorization: token ${GITHUB_TOKEN}" \
-        -H "Content-Type: application/json" \
-        --data '{"merge_method": "squash"}' \
-        "${PR_URL}/merge")
-    case ${status_code} in
-        200) echo "merged!"; break;;
-        405) echo "cannot merge... check for approvals or waiting on checks to complete...";;
-        409) echo "cannot merge... CONFLICT!!!";;
-        *) echo "something went wrong with the merge";;
-    esac
 
     sleep 1
 done

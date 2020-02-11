@@ -9,15 +9,21 @@ GITHUB_TOKEN=$(cat ~/.github_git_alias_auth_token)
 GITHUB_API_URL="https://api.github.com/repos/${ACCOUNT}/${REPO}"
 PR_URL="${GITHUB_API_URL}/pulls/${PULL_NUMBER}"
 
+
+function log() {
+    echo "$(date -Is) ${@}"
+}
+
+
 while true; do
     ## check if PR is already merged.
     status_code=$(curl -o /dev/null -s -w "%{http_code}" -X GET \
         -H "Authorization: token ${GITHUB_TOKEN}" \
         "${PR_URL}/merge")
     case ${status_code} in
-        204) echo "PR is already merged."; break;;
+        204) log "PR is already merged."; break;;
         404) ;; ## not merged
-        *) echo "something went wrong with the GET call";;
+        *) log "something went wrong with the GET call";;
     esac
 
     ## merge
@@ -27,10 +33,10 @@ while true; do
         --data '{"merge_method": "squash"}' \
         "${PR_URL}/merge")
     case ${status_code} in
-        200) echo "merged!"; break;;
-        405) echo "cannot merge... check for approvals or waiting on checks to complete...";;
-        409) echo "cannot merge... CONFLICT!!!"; break;;
-        *) echo "something went wrong with the merge";;
+        200) log "merged!"; break;;
+        405) log "cannot merge... check for approvals or waiting on checks to complete...";;
+        409) log "cannot merge... CONFLICT!!!"; break;;
+        *) log "something went wrong with the merge";;
     esac
 
     ## check if the branch is outdated. if it is then update the branch.
@@ -48,7 +54,7 @@ while true; do
     | awk -F: '{print $2}' \
     | sed -e 's/[", ]//g' \
     | grep -q "${master_sha}"; then
-        echo "updating branch, merging master into the branch..."
+        log "updating branch, merging master into the branch..."
         curl -X PUT \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.lydian-preview+json"\

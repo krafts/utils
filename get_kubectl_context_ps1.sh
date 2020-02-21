@@ -51,6 +51,7 @@ source ~/.kubectl_context_ps1_domains
 if [ "$environment" == "${PROD}" ]; then
   BG="${BG_RED}"
   FG="${FG_BLACK}"
+  extra_space=" "
   extra_chars_b="PROD->>!!! "
   extra_chars_e=" !!!<<-PROD"
 fi
@@ -58,24 +59,25 @@ fi
 if [ "$environment" == "${STAGING}" ]; then
   BG="${BG_YELLOW}"
   FG="${FG_BLACK}"
-  extra_chars_b="STAGING "
+  extra_space=" "
+  extra_chars_b=""
   extra_chars_e=" STAGING"
 fi
 
 if [ "$environment" == "${DEV}" ]; then
   u=$(echo ${cluster} |  awk -F- '{print $1}')
+  extra_space="" ## do not set the extra space when nothing to print.
   if [ "${u}" == "${USER}" ]; then
     exit 0
   fi
 
+  extra_space=" "
   BG="${BG_PURPLE}"
   FG="${FG_BLACK}"
-  extra_chars_b="DEV "
-  extra_chars_e=" DEV"
 fi
 
 ## adding extra space at the end for PS1
 ##printf "${fg}${bg} ${cluster} ${clear_all}"
 ##printf "${extra_chars_b}${cluster}${extra_chars_e}"
 #echo  "${BG}${FG} ${extra_chars_b}${cluster}${extra_chars_e} ${CLEAR_ALL}"
-printf "${extra_chars_b}${cluster}${extra_chars_e}"
+printf "${extra_space}${extra_chars_b}${cluster}${extra_chars_e}"

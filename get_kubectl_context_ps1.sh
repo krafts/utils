@@ -72,6 +72,8 @@ if [ "$environment" == "${DEV}" ]; then
   fi
 
   extra_space=" "
+  extra_chars_b=""
+  extra_chars_e=" DEV"
   BG="${BG_PURPLE}"
   FG="${FG_BLACK}"
 fi

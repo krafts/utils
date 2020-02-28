@@ -68,18 +68,23 @@ if [ "$environment" == "${DEV}" ]; then
   u=$(echo ${cluster} |  awk -F- '{print $1}')
   extra_space="" ## do not set the extra space when nothing to print.
   if [ "${u}" == "${USER}" ]; then
-    exit 0
+    cluster=""
+    extra_chars_b=""
+    extra_chars_e="DEV"
+    ##exit 0
+  else
+    extra_space=" "
+    extra_chars_b=""
+    extra_chars_e=" DEV"
+    BG="${BG_PURPLE}"
+    FG="${FG_BLACK}"
   fi
 
-  extra_space=" "
-  extra_chars_b=""
-  extra_chars_e=" DEV"
-  BG="${BG_PURPLE}"
-  FG="${FG_BLACK}"
+
 fi
 
 ## adding extra space at the end for PS1
 ##printf "${fg}${bg} ${cluster} ${clear_all}"
 ##printf "${extra_chars_b}${cluster}${extra_chars_e}"
 #echo  "${BG}${FG} ${extra_chars_b}${cluster}${extra_chars_e} ${CLEAR_ALL}"
-printf "${extra_space}${extra_chars_b}${cluster}${extra_chars_e}"
+printf "${extra_chars_b}${cluster}${extra_chars_e}"

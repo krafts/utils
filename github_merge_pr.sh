@@ -21,9 +21,9 @@ while true; do
         -H "Authorization: token ${GITHUB_TOKEN}" \
         "${PR_URL}/merge")
     case ${status_code} in
-        204) log "PR is already merged."; break;;
+        204) log "${PULL_NUMBER} is already merged."; break;;
         404) ;; ## not merged
-        *) log "something went wrong with the GET call";;
+        *) log "${PULL_NUMBER} something went wrong with the GET call.";;
     esac
 
     ## merge
@@ -33,10 +33,10 @@ while true; do
         --data '{"merge_method": "squash"}' \
         "${PR_URL}/merge")
     case ${status_code} in
-        200) log "merged!"; break;;
-        405) log "cannot merge... check for approvals or waiting on checks to complete...";;
-        409) log "cannot merge... CONFLICT!!!"; break;;
-        *) log "something went wrong with the merge";;
+        200) log "${PULL_NUMBER} merged!"; break;;
+        405) log "${PULL_NUMBER} cannot merge... check for approvals or waiting on checks to complete...";;
+        409) log "${PULL_NUMBER} cannot merge... CONFLICT!!!"; break;;
+        *) log "${PULL_NUMBER} something went wrong with the merge.";;
     esac
 
     ## check if the branch is outdated. if it is then update the branch.
@@ -54,7 +54,7 @@ while true; do
     | awk -F: '{print $2}' \
     | sed -e 's/[", ]//g' \
     | grep -q "${master_sha}"; then
-        log "updating branch, merging master into the branch..."
+        log "${PULL_NUMBER}, updating branch, merging master into the branch..."
         curl -X PUT \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.lydian-preview+json"\

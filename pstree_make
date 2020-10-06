@@ -1,0 +1,3 @@
+#!/bin/bash
+
+while true; do pid=$(ps -ef | grep "[m]ake" | grep -v grep | tail -n 1 | awk '{print $2}'); if [ ! -z $pid ]; then pstree $pid; echo; echo; echo; fi; done;

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ "$1" == "-u" ]; then
+  utc="-u"
+else
+  utc=
+fi
+
+date_tz=$(date $utc +"%Y-%m-%dT%H_%M_%S%z")
+echo "$date_tz"

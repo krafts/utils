@@ -7,11 +7,12 @@ KUBECTL_PREFIX="kubectl_v"
 PATH_PREFIX="${DIR_PREFIX}/${KUBECTL_PREFIX}"
 
 if [ $# -ne 1 ]; then
-  echo usage: $0 version
+  echo "usage: ${0##*/} version"
   echo
-  echo available local versions
+  echo "available local version(s)"
   ls -1 ${PATH_PREFIX}* | sed "s|${PATH_PREFIX}||g"
-  echo see https://github.com/kubernetes/kubectl/tags for remote versions
+  echo
+  echo "see https://github.com/kubernetes/kubectl/tags for remote version(s)"
   exit 1
 fi
 

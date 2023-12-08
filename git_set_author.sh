@@ -24,9 +24,10 @@
 if git remote -v | head -n 1 | grep -q "company_repo" 2>&1 > /dev/null; then
   git config user.name "username_company"
   git config user.email "username_company@company.com"
+  git commit --amend --reset-author --no-edit #--reuse-message HEAD@{0}
 else
   git config user.name "username_home"
   git config user.email "username_home@home.com"
   sed -i.bak  "s/github.com:/github.com-username_home:/g" .git/config
+  git commit --amend --reset-author --no-edit #--reuse-message HEAD@{0}
 fi
-

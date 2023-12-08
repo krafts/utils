@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Add $HOME/local/kptenv/bin to the PATH
+
+DIR_PREFIX="$HOME/local/kptenv"
+KPT_VERSIONS_DIR="${DIR_PREFIX}/versions"
+BIN_DIR="${DIR_PREFIX}/bin"
+KPT="${BIN_DIR}/kpt"
+
+# Console Colors
+# Colors are taken from 8/16 Colors at https://misc.flogisoft.com/bash/tip_colors_and_formatting
+TXT_CLEAR="\033[0m"
+TXT_RED="\033[31m"
+TXT_GREEN="\033[32m"
+TXT_YELLOW="\033[33m"
+TXT_BLUE="\033[34m"
+TXT_MAGENTA="\033[35m"
+TXT_CYAN="\033[36m"
+TXT_LIGHT_GRAY="\033[37m"
+TXT_DARK_GRAY="\033[90m"
+TXT_WHITE="\033[97m"
+
+if [ $# -ne 1 ]; then
+  current_version_dir=$(readlink ${KPT} | sed "s|/kpt$||g")
+  current_version=$(echo ${current_version_dir} | sed "s|${KPT_VERSIONS_DIR}/||g")
+  echo -e "*${TXT_YELLOW}${current_version}${TXT_CLEAR}"
+
+  # Filter out the current version so it can be printed at the top
+  set +e
+  ls -1 ${KPT_VERSIONS_DIR} | grep -v "^${current_version}$" | while read i; do
+    echo -e "${TXT_GREEN}${i}${TXT_CLEAR}"
+  done
+  set -e
+
+  echo
+  echo "see https://github.com/kptdev/kpt/tags for remote version(s)"
+  exit 0
+fi
+
+KPT_VERSION="${1}"
+KPT_VERSION_DIR="${KPT_VERSIONS_DIR}/${KPT_VERSION}"
+KPT_VERSIONED="${KPT_VERSION_DIR}/kpt"
+OS_PLATFORM="darwin_amd64"
+KPT_DOWNLOAD_URL="https://github.com/GoogleContainerTools/kpt/releases/download/v${KPT_VERSION}/kpt_${OS_PLATFORM}"
+if [ ! -d "${KPT_VERSION_DIR}" ]; then
+  echo -e "${TXT_RED}${KPT_VERSION}${TXT_CLEAR} is not available locally, attempting to fetch it from ${TXT_CYAN}${KPT_DOWNLOAD_URL}${TXT_CLEAR} ..."
+  curl  -sS -L -I "${KPT_DOWNLOAD_URL}" | grep "HTTP/2 200" &> /dev/null || (echo -e "KPT version ${TXT_RED}${KPT_VERSION} ${TXT_MAGENTA}does not exist${TXT_CLEAR} at ${TXT_CYAN}${KPT_DOWNLOAD_URL}${TXT_CLEAR}" && exit 1)
+  mkdir -p "${KPT_VERSION_DIR}" "${BIN_DIR}"
+  curl  -sS -L -o "${KPT_VERSIONED}" "${KPT_DOWNLOAD_URL}"
+  chmod 0755 "${KPT_VERSIONED}"
+  # set +e
+  # extended attributes such as com.apple.quarantine and com.apple.metadata are
+  # not added when downloading the binary using curl. They are only added when
+  # downloading the binary using a browser.
+  # xattr -d com.apple.quarantine "${KPT_VERSIONED}"
+  # set -e
+  echo -e "${TXT_GREEN}${KPT_VERSION}${TXT_CLEAR} fetched"
+fi
+
+ln -sf "${KPT_VERSIONED}" "${KPT}"
+kpt version

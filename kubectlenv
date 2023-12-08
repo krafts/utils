@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+DIR_PREFIX="$HOME/.kube/kubectl"
+KUBECTL_PREFIX="kubectl_v"
+PATH_PREFIX="${DIR_PREFIX}/${KUBECTL_PREFIX}"
+
+if [ $# -ne 1 ]; then
+  echo usage: $0 version
+  echo
+  echo available local versions
+  ls -1 ${PATH_PREFIX}* | sed "s|${PATH_PREFIX}||g"
+  echo see https://github.com/kubernetes/kubectl/tags for remote versions
+  exit 1
+fi
+
+KUBECTL_VERSION="${1}"
+OS_PLATFORM="darwin/amd64"
+KUBECTL_DOWNLOAD_URL="https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/${OS_PLATFORM}/kubectl"
+
+if [ ! -f "${PATH_PREFIX}${KUBECTL_VERSION}" ]; then
+  echo "${KUBECTL_VERSION} is not available locally, attempting to fetch it from ${KUBECTL_DOWNLOAD_URL} ..."
+  curl  -sS -L -I "${KUBECTL_DOWNLOAD_URL}" | grep "HTTP/2 200" &> /dev/null || (echo "kubectl version v${KUBECTL_VERSION} does not exist at ${KUBECTL_DOWNLOAD_URL}" && exit 1)
+  mkdir -p "${DIR_PREFIX}"
+  curl  -sS -L -o "${PATH_PREFIX}${KUBECTL_VERSION}" "${KUBECTL_DOWNLOAD_URL}"
+  chmod 0755 "${PATH_PREFIX}${KUBECTL_VERSION}"
+  echo "${KUBECTL_VERSION} fetched"
+fi
+
+ln -sf "${PATH_PREFIX}${KUBECTL_VERSION}" /usr/local/bin/kubectl
+kubectl version --client --short

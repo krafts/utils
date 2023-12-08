@@ -2,36 +2,57 @@
 
 set -euo pipefail
 
-DIR_PREFIX="$HOME/.kube/kubectl"
-KUBECTL_PREFIX="kubectl_v"
-PATH_PREFIX="${DIR_PREFIX}/${KUBECTL_PREFIX}"
+# Add $HOME/local/kubectlenv/bin to the PATH
+
+DIR_PREFIX="$HOME/local/kubectlenv"
+KUBECTL_VERSIONS_DIR="${DIR_PREFIX}/versions"
+BIN_DIR="${DIR_PREFIX}/bin"
+KUBECTL="${BIN_DIR}/kubectl"
+
+# Console Colors
+# Colors are taken from 8/16 Colors at https://misc.flogisoft.com/bash/tip_colors_and_formatting
+TXT_CLEAR="\033[0m"
+TXT_RED="\033[31m"
+TXT_GREEN="\033[32m"
+TXT_YELLOW="\033[33m"
+TXT_BLUE="\033[34m"
+TXT_MAGENTA="\033[35m"
+TXT_CYAN="\033[36m"
+TXT_LIGHT_GRAY="\033[37m"
+TXT_DARK_GRAY="\033[90m"
+TXT_WHITE="\033[97m"
 
 if [ $# -ne 1 ]; then
-  echo "usage: ${0##*/} version"
-  echo
-  echo "available local version(s)"
-  ls -1 ${PATH_PREFIX}* | sed "s|${PATH_PREFIX}||g"
+  current_version_dir=$(readlink ${KUBECTL} | sed "s|/kubectl$||g")
+  current_version=$(echo ${current_version_dir} | sed "s|${KUBECTL_VERSIONS_DIR}/||g")
+  echo -e "*${TXT_YELLOW}${current_version}${TXT_CLEAR}"
+
+  # Filter out the current version so it can be printed at the top
+  set +e
+  ls -1 ${KUBECTL_VERSIONS_DIR} | grep -v "^${current_version}$" | while read i; do
+    echo -e "${TXT_GREEN}${i}${TXT_CLEAR}"
+  done
+  set -e
+
   echo
   echo "see https://github.com/kubernetes/kubectl/tags for remote version(s)"
-  if type kubectl &> /dev/null; then
-    echo
-    kubectl version --client --short
-  fi
-  exit 1
+  exit 0
 fi
 
 KUBECTL_VERSION="${1}"
+KUBECTL_VERSION_DIR="${KUBECTL_VERSIONS_DIR}/${KUBECTL_VERSION}"
+KUBECTL_VERSIONED="${KUBECTL_VERSION_DIR}/kubectl"
 OS_PLATFORM="darwin/amd64"
 KUBECTL_DOWNLOAD_URL="https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/${OS_PLATFORM}/kubectl"
 
-if [ ! -f "${PATH_PREFIX}${KUBECTL_VERSION}" ]; then
-  echo "${KUBECTL_VERSION} is not available locally, attempting to fetch it from ${KUBECTL_DOWNLOAD_URL} ..."
-  curl  -sS -L -I "${KUBECTL_DOWNLOAD_URL}" | grep "HTTP/2 200" &> /dev/null || (echo "kubectl version v${KUBECTL_VERSION} does not exist at ${KUBECTL_DOWNLOAD_URL}" && exit 1)
-  mkdir -p "${DIR_PREFIX}"
-  curl  -sS -L -o "${PATH_PREFIX}${KUBECTL_VERSION}" "${KUBECTL_DOWNLOAD_URL}"
-  chmod 0755 "${PATH_PREFIX}${KUBECTL_VERSION}"
-  echo "${KUBECTL_VERSION} fetched"
+if [ ! -d "${KUBECTL_VERSION_DIR}" ]; then
+  echo -e "${TXT_RED}${KUBECTL_VERSION}${TXT_CLEAR} is not available locally, attempting to fetch it from ${TXT_CYAN}${KUBECTL_DOWNLOAD_URL}${TXT_CLEAR} ..."
+  curl  -sS -L -I "${KUBECTL_DOWNLOAD_URL}" | grep "HTTP/2 200" &> /dev/null || (echo -e "kubectl version ${TXT_RED}${KUBECTL_VERSION} ${TXT_MAGENTA}does not exist${TXT_CLEAR} at ${TXT_CYAN}${KUBECTL_DOWNLOAD_URL}${TXT_CLEAR}" && exit 1)
+  mkdir -p "${KUBECTL_VERSION_DIR}" "${BIN_DIR}"
+  curl  -sS -L -o "${KUBECTL_VERSIONED}" "${KUBECTL_DOWNLOAD_URL}"
+  chmod 0755 "${KUBECTL_VERSIONED}"
+  echo -e "${TXT_GREEN}${KUBECTL_VERSION}${TXT_CLEAR} fetched"
 fi
 
-ln -sf "${PATH_PREFIX}${KUBECTL_VERSION}" /usr/local/bin/kubectl
+ln -sf "${KUBECTL_VERSIONED}" "${KUBECTL}"
 kubectl version --client --short

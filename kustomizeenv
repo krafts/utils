@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Add $HOME/local/kustomizeenv/bin to the PATH
+
+DIR_PREFIX="$HOME/local/kustomizeenv"
+KUSTOMIZE_VERSIONS_DIR="${DIR_PREFIX}/versions"
+BIN_DIR="${DIR_PREFIX}/bin"
+KUSTOMIZE="${BIN_DIR}/kustomize"
+
+# Console Colors
+# Colors are taken from 8/16 Colors at https://misc.flogisoft.com/bash/tip_colors_and_formatting
+TXT_CLEAR="\033[0m"
+TXT_RED="\033[31m"
+TXT_GREEN="\033[32m"
+TXT_YELLOW="\033[33m"
+TXT_BLUE="\033[34m"
+TXT_MAGENTA="\033[35m"
+TXT_CYAN="\033[36m"
+TXT_LIGHT_GRAY="\033[37m"
+TXT_DARK_GRAY="\033[90m"
+TXT_WHITE="\033[97m"
+
+if [ $# -ne 1 ]; then
+  current_version_dir=$(readlink ${KUSTOMIZE} | sed "s|/kustomize$||g")
+  current_version=$(echo ${current_version_dir} | sed "s|${KUSTOMIZE_VERSIONS_DIR}/||g")
+  echo -e "*${TXT_YELLOW}${current_version}${TXT_CLEAR}"
+
+  # Filter out the current version so it can be printed at the top
+  set +e
+  ls -1 ${KUSTOMIZE_VERSIONS_DIR} | grep -v "^${current_version}$" | while read i; do
+    echo -e "${TXT_GREEN}${i}${TXT_CLEAR}"
+  done
+  set -e
+
+  echo
+  echo "see https://github.com/kubernetes-sigs/kustomize/tags for remote version(s)"
+  exit 0
+fi
+
+OS_PLATFORM="darwin_amd64"
+KUSTOMIZE_VERSION="${1}"
+KUSTOMIZE_VERSION_DIR="${KUSTOMIZE_VERSIONS_DIR}/${KUSTOMIZE_VERSION}"
+KUSTOMIZE_VERSIONED_TARBALL="${KUSTOMIZE_VERSION_DIR}/kustomize_v${KUSTOMIZE_VERSION}_${OS_PLATFORM}.tar.gz"
+KUSTOMIZE_VERSIONED="${KUSTOMIZE_VERSION_DIR}/kustomize"
+KUSTOMIZE_DOWNLOAD_URL="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_${OS_PLATFORM}.tar.gz"
+
+if [ ! -d "${KUSTOMIZE_VERSION_DIR}" ]; then
+  echo -e "${TXT_RED}${KUSTOMIZE_VERSION}${TXT_CLEAR} is not available locally, attempting to fetch it from ${TXT_CYAN}${KUSTOMIZE_DOWNLOAD_URL}${TXT_CLEAR} ..."
+  curl  -sS -L -I "${KUSTOMIZE_DOWNLOAD_URL}" | grep "HTTP/2 200" &> /dev/null || (echo -e "kustomize version ${TXT_RED}${KUSTOMIZE_VERSION} ${TXT_MAGENTA}does not exist${TXT_CLEAR} at ${TXT_CYAN}${KUSTOMIZE_DOWNLOAD_URL}${TXT_CLEAR}" && exit 1)
+  mkdir -p "${KUSTOMIZE_VERSION_DIR}" "${BIN_DIR}"
+  curl  -sS -L -o "${KUSTOMIZE_VERSIONED_TARBALL}" "${KUSTOMIZE_DOWNLOAD_URL}"
+  tar -C "${KUSTOMIZE_VERSION_DIR}" -xvzf "${KUSTOMIZE_VERSIONED_TARBALL}" kustomize ## extract only the kustomize bin from the tarball
+  chmod 0755 "${KUSTOMIZE_VERSIONED}"
+  echo -e "${TXT_GREEN}${KUSTOMIZE_VERSION}${TXT_CLEAR} fetched"
+fi
+
+ln -sf "${KUSTOMIZE_VERSIONED}" "${KUSTOMIZE}"
+kustomize version

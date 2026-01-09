@@ -1,1 +1,1 @@
-exec date -d @${1} +%Y-%m-%dT%H:%M:%S
+exec gdate -d @${1} +%Y-%m-%dT%H:%M:%S

@@ -42,7 +42,7 @@ fi
 KPT_VERSION="${1}"
 KPT_VERSION_DIR="${KPT_VERSIONS_DIR}/${KPT_VERSION}"
 KPT_VERSIONED="${KPT_VERSION_DIR}/kpt"
-OS_PLATFORM="darwin_amd64"
+OS_PLATFORM="darwin_$(uname -m)"
 KPT_DOWNLOAD_URL="https://github.com/GoogleContainerTools/kpt/releases/download/v${KPT_VERSION}/kpt_${OS_PLATFORM}"
 if [ ! -d "${KPT_VERSION_DIR}" ]; then
   echo -e "${TXT_RED}${KPT_VERSION}${TXT_CLEAR} is not available locally, attempting to fetch it from ${TXT_CYAN}${KPT_DOWNLOAD_URL}${TXT_CLEAR} ..."

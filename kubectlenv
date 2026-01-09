@@ -55,4 +55,4 @@ if [ ! -d "${KUBECTL_VERSION_DIR}" ]; then
 fi
 
 ln -sf "${KUBECTL_VERSIONED}" "${KUBECTL}"
-kubectl version --client --short
+kubectl version --client=true

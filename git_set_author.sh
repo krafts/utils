@@ -1,6 +1,8 @@
-#!/bin/bash
-
-
+#!/usr/bin/env bash
+#
+# Default identity for every repo, krafts for repos under ~/workspace/krafts/.
+#
+# Usage: git_set_author.sh <default name> <default email> <krafts name> <krafts email>
 
 ### ~/.ssh/config entries
 
@@ -18,16 +20,21 @@
 ###    CheckHostIP no
 ###    StrictHostKeyChecking no
 
+set -euo pipefail
 
-
-
-if git remote -v | head -n 1 | grep -q "company_repo" 2>&1 > /dev/null; then
-  git config user.name "username_company"
-  git config user.email "username_company@company.com"
-  git commit --amend --reset-author --no-edit #--reuse-message HEAD@{0}
-else
-  git config user.name "username_home"
-  git config user.email "username_home@home.com"
-  sed -i.bak  "s/github.com:/github.com-username_home:/g" .git/config
-  git commit --amend --reset-author --no-edit #--reuse-message HEAD@{0}
+if [ $# -ne 4 ]; then
+  echo "Usage: $(basename "$0") <default name> <default email> <krafts name> <krafts email>" >&2
+  exit 1
 fi
+
+mkdir -p ~/.config/git
+git config -f ~/.config/git/default user.name "$1"
+git config -f ~/.config/git/default user.email "$2"
+git config -f ~/.config/git/krafts user.name "$3"
+git config -f ~/.config/git/krafts user.email "$4"
+
+# git keeps the last value it reads, so the includeIf has to come after the
+# default include: remove it and add it again at the end
+git config --global include.path "~/.config/git/default"
+git config --global --remove-section "includeIf.gitdir:~/workspace/krafts/" 2> /dev/null || true
+git config --global "includeIf.gitdir:~/workspace/krafts/.path" "~/.config/git/krafts"
